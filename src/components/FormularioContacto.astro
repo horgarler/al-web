@@ -1,0 +1,148 @@
+---
+/**
+ * Formulario de contacto contra Web3Forms.
+ *
+ * Es un POST de HTML de toda la vida, asi que funciona con JavaScript
+ * desactivado. Web3Forms devuelve al `redirect` que se le pasa, y la pagina de
+ * contacto lee el parametro `estado` para decir si ha ido bien.
+ *
+ * La `access_key` es publica por diseño: no revela el buzon de destino.
+ */
+import Bilingue from './Bilingue.astro';
+import { WEB3FORMS_ASUNTO, WEB3FORMS_KEY, sitio } from '../config/site';
+import { RE_MARCADOR } from '../lib/convenciones';
+
+const pendiente = RE_MARCADOR.test(WEB3FORMS_KEY);
+const destino = new URL('/contact/?estado=ok', sitio.url).href;
+---
+
+{
+  pendiente ? (
+    <p class="aviso" role="status">
+      <Bilingue
+        como="span"
+        texto={{
+          es: 'El formulario todavía no está activo: falta la clave de Web3Forms.',
+          en: 'The form is not active yet: the Web3Forms key is missing.',
+        }}
+      />
+    </p>
+  ) : null
+}
+
+<form action="https://api.web3forms.com/submit" method="POST" class="formulario">
+  <input type="hidden" name="access_key" value={WEB3FORMS_KEY} />
+  <input type="hidden" name="subject" value={WEB3FORMS_ASUNTO} />
+  <input type="hidden" name="redirect" value={destino} />
+
+  {/* Campo trampa: los humanos no lo ven, los robots lo rellenan. */}
+  <input
+    type="checkbox"
+    name="botcheck"
+    class="trampa"
+    tabindex="-1"
+    autocomplete="off"
+    aria-hidden="true"
+  />
+
+  <p class="campo">
+    <label for="nombre">
+      <Bilingue como="span" texto={{ es: 'Nombre', en: 'Name' }} />
+    </label>
+    <input type="text" id="nombre" name="nombre" required autocomplete="name" disabled={pendiente} />
+  </p>
+
+  <p class="campo">
+    <label for="email">
+      <Bilingue como="span" texto={{ es: 'Correo electrónico', en: 'Email' }} />
+    </label>
+    <input type="email" id="email" name="email" required autocomplete="email" disabled={pendiente} />
+  </p>
+
+  <p class="campo">
+    <label for="mensaje">
+      <Bilingue como="span" texto={{ es: 'Mensaje', en: 'Message' }} />
+    </label>
+    <textarea id="mensaje" name="mensaje" rows="6" required disabled={pendiente}></textarea>
+  </p>
+
+  <p class="consentimiento">
+    <input type="checkbox" id="consentimiento" name="consentimiento" required disabled={pendiente} />
+    <label for="consentimiento">
+      <span>
+        He leído y acepto la <a href="/privacidad/">política de privacidad</a>.
+      </span>
+      <br />
+      <span class="en" lang="en">
+        I have read and accept the <a href="/privacidad/">privacy policy</a>.
+      </span>
+    </label>
+  </p>
+
+  <p>
+    <button type="submit" disabled={pendiente}>
+      <Bilingue como="span" texto={{ es: 'Enviar', en: 'Send' }} />
+    </button>
+  </p>
+</form>
+
+<style>
+  .formulario {
+    max-width: 40rem;
+  }
+
+  .campo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-xs);
+  }
+
+  .campo input,
+  .campo textarea {
+    padding: var(--espacio-s);
+    background: transparent;
+    border: 1px solid var(--color-separador);
+    color: inherit;
+    font: inherit;
+  }
+
+  .consentimiento {
+    display: flex;
+    gap: var(--espacio-s);
+    align-items: flex-start;
+  }
+
+  button {
+    padding: var(--espacio-s) var(--espacio-l);
+    background: transparent;
+    border: 1px solid var(--color-texto);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  button[disabled],
+  input[disabled],
+  textarea[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .aviso {
+    padding: var(--espacio-s) var(--espacio-m);
+    border: 1px solid var(--color-acento);
+    color: var(--color-acento);
+  }
+
+  /*
+   * La trampa se saca de la pantalla en lugar de con display:none, porque
+   * algunos robots ignoran los campos ocultos de esa forma.
+   */
+  .trampa {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+</style>

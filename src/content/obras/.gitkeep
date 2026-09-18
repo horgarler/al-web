@@ -1,0 +1,2 @@
+# El contenido real lo genera `npm run imagenes`. Esta carpeta se versiona
+# vacia para que el build funcione sin contenido.

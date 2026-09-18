@@ -1,0 +1,77 @@
+---
+import Bilingue from '../components/Bilingue.astro';
+import FormularioContacto from '../components/FormularioContacto.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+/*
+ * Web3Forms devuelve a /contact/?estado=ok tras un envio correcto.
+ *
+ * El sitio es estatico, asi que el parametro no existe en tiempo de build y no
+ * se puede leer desde el frontmatter: los avisos se pintan ocultos y los
+ * descubre un script en linea. Sin JavaScript el envio funciona igual, pero el
+ * visitante no ve la confirmacion. Si algun dia molesta, la alternativa es
+ * apuntar el `redirect` a una pagina propia del tipo /contact/enviado/.
+ */
+---
+
+<BaseLayout titulo="Contact">
+  <div class="pagina">
+    <h1>contact</h1>
+
+    <p class="aviso exito" role="status" data-estado="ok" hidden>
+      <Bilingue
+        como="span"
+        texto={{
+          es: 'Mensaje enviado. Gracias por escribir.',
+          en: 'Message sent. Thank you for writing.',
+        }}
+      />
+    </p>
+
+    <p class="aviso error" role="status" data-estado="error" hidden>
+      <Bilingue
+        como="span"
+        texto={{
+          es: 'No se ha podido enviar el mensaje. Inténtalo de nuevo.',
+          en: 'The message could not be sent. Please try again.',
+        }}
+      />
+    </p>
+
+    <FormularioContacto />
+  </div>
+</BaseLayout>
+
+<script is:inline>
+  (function () {
+    var estado = new URLSearchParams(location.search).get('estado');
+    if (!estado) return;
+    var aviso = document.querySelector('[data-estado="' + estado + '"]');
+    if (aviso) aviso.hidden = false;
+  })();
+</script>
+
+<style>
+  .pagina {
+    padding: var(--espacio-l);
+  }
+
+  h1 {
+    margin-top: 0;
+    font-size: var(--texto-xl);
+    font-weight: 400;
+  }
+
+  .aviso {
+    padding: var(--espacio-s) var(--espacio-m);
+    border: 1px solid currentColor;
+  }
+
+  .exito {
+    color: var(--color-texto);
+  }
+
+  .error {
+    color: var(--color-acento);
+  }
+</style>

@@ -1,0 +1,29 @@
+{
+  "name": "angelalergo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/validar-contenido.ts && astro build",
+    "preview": "wrangler dev",
+    "check": "astro check",
+    "validar": "node scripts/validar-contenido.ts",
+    "imagenes": "node scripts/preparar-imagenes.ts",
+    "meta:crear": "node scripts/crear-meta.ts",
+    "urls:comprobar": "node scripts/comprobar-urls.ts"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.3.3",
+    "sharp": "^0.35.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "~6.0.3",
+    "wrangler": "^4.135.0"
+  }
+}

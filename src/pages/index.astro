@@ -1,0 +1,13 @@
+---
+import HeroInicio from '../components/HeroInicio.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { sitio } from '../config/site';
+
+// El prompt 02 sustituye esto por la rotacion de tres imagenes que se
+// configuran en src/config/plantilla.ts.
+---
+
+<BaseLayout titulo={sitio.nombre} sinScroll>
+  <h1 class="solo-lectores">{sitio.nombre}</h1>
+  <HeroInicio marcador="[home_img1]" />
+</BaseLayout>

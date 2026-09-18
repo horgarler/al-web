@@ -1,0 +1,110 @@
+---
+import Navegacion from '../components/Navegacion.astro';
+import Pie from '../components/Pie.astro';
+import { sitio } from '../config/site';
+import '../styles/global.css';
+
+export interface Props {
+  /** Va en <title>, antes del nombre del sitio. */
+  titulo: string;
+  descripcion?: string;
+  /** En una ficha de obra, el slug de su categoria: marca activa esa entrada. */
+  categoriaActiva?: string | null;
+  /** Imagen para Open Graph, como URL absoluta. */
+  imagenOg?: string | null;
+  /** La home no tiene scroll: ocupa exactamente el alto de la ventana. */
+  sinScroll?: boolean;
+}
+
+const {
+  titulo,
+  descripcion = sitio.descripcion.es,
+  categoriaActiva = null,
+  imagenOg = null,
+  sinScroll = false,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? sitio.url);
+const tituloCompleto = titulo === sitio.nombre ? titulo : `${titulo} · ${sitio.nombre}`;
+---
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{tituloCompleto}</title>
+    <meta name="description" content={descripcion} />
+    <link rel="canonical" href={canonical.href} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={sitio.nombre} />
+    <meta property="og:title" content={tituloCompleto} />
+    <meta property="og:description" content={descripcion} />
+    <meta property="og:url" content={canonical.href} />
+    {imagenOg ? <meta property="og:image" content={imagenOg} /> : null}
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline>
+      // Quita la clase no-js cuanto antes, para que el CSS pueda distinguir
+      // entre "sin JavaScript" y "con JavaScript" sin parpadeos.
+      document.documentElement.classList.remove('no-js');
+    </script>
+  </head>
+
+  <body class={sinScroll ? 'sin-scroll' : undefined}>
+    <a class="saltar" href="#contenido">Saltar al contenido</a>
+
+    <div class="disposicion">
+      <aside class="barra">
+        <Navegacion rutaActual={Astro.url.pathname} categoriaActiva={categoriaActiva} />
+        <Pie />
+      </aside>
+
+      <main id="contenido" class="contenido">
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>
+
+<style>
+  .disposicion {
+    display: grid;
+    /* El diseño fiel (barra fija, menu movil) llega con el prompt 02. */
+    grid-template-columns: var(--ancho-barra) 1fr;
+    min-height: 100dvh;
+  }
+
+  .barra {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--espacio-l);
+    padding: var(--espacio-m);
+    text-align: right;
+  }
+
+  .contenido {
+    min-width: 0;
+  }
+
+  /* 768px = BREAKPOINT_MOVIL en src/config/site.ts */
+  @media (max-width: 768px) {
+    .disposicion {
+      grid-template-columns: 1fr;
+    }
+
+    .barra {
+      text-align: left;
+    }
+  }
+</style>
+
+<style is:global>
+  body.sin-scroll {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+</style>

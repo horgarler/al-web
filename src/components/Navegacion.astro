@@ -1,0 +1,83 @@
+---
+/**
+ * Menu lateral. En esta fase es una lista plana con el estado activo puesto;
+ * la barra fija, el menu movil y el diseño llegan con el prompt 02.
+ *
+ * Las etiquetas van en ingles (`nombre.en` de cada categoria) y en mayusculas
+ * por CSS, nunca escritas en mayusculas en el texto.
+ */
+import { APARTADOS_FIJOS } from '../config/site';
+import { getCategorias } from '../lib/obras';
+
+export interface Props {
+  /** Ruta de la pagina actual, con barra final. */
+  rutaActual: string;
+  /** En una ficha de obra, el slug de su categoria: se marca activa. */
+  categoriaActiva?: string | null;
+}
+
+const { rutaActual, categoriaActiva = null } = Astro.props;
+
+const categorias = await getCategorias();
+
+const apartados = [
+  ...APARTADOS_FIJOS.map((a) => ({
+    etiqueta: a.etiqueta,
+    ruta: a.ruta,
+    posicion: a.posicion,
+    slug: null as string | null,
+  })),
+  ...categorias.map((c) => ({
+    etiqueta: c.nombre.en,
+    ruta: `/${c.slug}/`,
+    // El prefijo numerico de la carpeta es la posicion en el menu.
+    posicion: c.numero,
+    slug: c.slug,
+  })),
+].sort((a, b) => a.posicion - b.posicion);
+
+const esActivo = (ruta: string, slug: string | null) =>
+  ruta === rutaActual || (slug !== null && slug === categoriaActiva);
+---
+
+<nav class="menu" aria-label="Principal">
+  <ul>
+    {
+      apartados.map((a) => (
+        <li>
+          <a href={a.ruta} aria-current={esActivo(a.ruta, a.slug) ? 'page' : undefined}>
+            {a.etiqueta}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .menu a {
+    display: block;
+    padding: var(--espacio-xs) 0;
+    color: var(--color-tenue);
+    font-size: var(--texto-s);
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .menu a[aria-current='page'] {
+    color: var(--color-texto);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .menu a:hover {
+      color: var(--color-texto);
+    }
+  }
+</style>

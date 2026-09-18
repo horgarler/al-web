@@ -1,0 +1,53 @@
+---
+/**
+ * Rejilla de una categoria. El calibrado fino de columnas y la capa del hover
+ * llegan con el prompt 03; aqui queda la estructura y el estado vacio.
+ */
+import TarjetaObra from './TarjetaObra.astro';
+import Bilingue from './Bilingue.astro';
+import type { Obra } from '../lib/obras';
+
+export interface Props {
+  obras: Obra[];
+  etiquetaCategoria: string;
+}
+
+const { obras, etiquetaCategoria } = Astro.props;
+
+/** Aproximacion de la primera fila visible, para decidir que carga sin diferir. */
+const PRIMERA_FILA = 4;
+---
+
+{
+  obras.length === 0 ? (
+    <Bilingue
+      class="vacio"
+      texto={{ es: 'Todavía no hay obras en esta sección.', en: 'No works in this section yet.' }}
+    />
+  ) : (
+    <div class="rejilla">
+      {obras.map((obra, i) => (
+        <TarjetaObra
+          obra={obra}
+          etiquetaCategoria={etiquetaCategoria}
+          eager={i < PRIMERA_FILA}
+          prioridad={i === 0}
+        />
+      ))}
+    </div>
+  )
+}
+
+<style>
+  .rejilla {
+    display: grid;
+    /* --galeria-min lo calibra el prompt 03. */
+    grid-template-columns: repeat(auto-fill, minmax(var(--galeria-min, 300px), 1fr));
+    gap: 0;
+  }
+
+  .vacio {
+    padding: var(--espacio-l);
+    color: var(--color-tenue);
+  }
+</style>

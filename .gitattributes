@@ -1,0 +1,15 @@
+# Normaliza los finales de linea a LF en el repositorio.
+# Manda sobre core.autocrlf, que en este equipo esta en true.
+* text=auto eol=lf
+
+# Binarios: ni normalizacion de linea ni diff de texto.
+*.jpg   binary
+*.jpeg  binary
+*.png   binary
+*.webp  binary
+*.gif   binary
+*.avif  binary
+*.ico   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary

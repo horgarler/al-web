@@ -1,0 +1,84 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-fondo);
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: var(--fuente-base);
+  font-size: var(--texto-l);
+  line-height: var(--interlineado);
+  -webkit-text-size-adjust: 100%;
+}
+
+img,
+picture,
+video {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+}
+
+/* El foco tiene que verse siempre, tambien sobre fotografia. */
+:focus-visible {
+  outline: 2px solid var(--color-foco);
+  outline-offset: 2px;
+}
+
+/* Visible solo para lectores de pantalla. */
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Enlace para saltar al contenido: aparece al tabular. */
+.saltar {
+  position: absolute;
+  left: var(--espacio-s);
+  top: -100%;
+  z-index: 100;
+  padding: var(--espacio-s) var(--espacio-m);
+  background: var(--color-fondo);
+  border: 1px solid var(--color-texto);
+}
+
+.saltar:focus {
+  top: var(--espacio-s);
+}
+
+/* El ingles: gris y un punto mas pequeño que el español. */
+.en {
+  color: var(--color-texto-en);
+  font-size: calc(1em * var(--escala-en));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

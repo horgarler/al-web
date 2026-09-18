@@ -1,0 +1,19 @@
+# Trayectoria: el CV, por secciones y años descendentes.
+#
+# Cada entrada es una linea suelta, no un par { es, en }: el CV original viene
+# en un solo idioma y traducirlo seria inventar contenido.
+#
+# TODO: volcar el CV. Son ~265 entradas en dos secciones y estan en la web
+# actual, en http://www.angelalergo.com/trajectory/ (solo responde por HTTP).
+
+- id: exposiciones-performances
+  titulo:
+    es: "Exposiciones y performances"
+    en: "Exhibitions, performances"
+  anios: []
+
+- id: bibliografia
+  titulo:
+    es: "Bibliografía"
+    en: "Bibliography"
+  anios: []

@@ -1,0 +1,81 @@
+---
+import { getCollection } from 'astro:content';
+
+import Bilingue from '../components/Bilingue.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const secciones = await getCollection('trayectoria');
+const hayContenido = secciones.some((s) => s.data.anios.length > 0);
+---
+
+<BaseLayout titulo="Trajectory">
+  <div class="pagina">
+    <h1>trajectory</h1>
+
+    {
+      hayContenido ? (
+        secciones.map((seccion) => (
+          <section class="seccion">
+            <Bilingue como="h2" class="titulo-seccion" texto={seccion.data.titulo} />
+            {seccion.data.anios.map((bloque) => (
+              <div class="anio">
+                <h3>{bloque.anio}</h3>
+                <ul>
+                  {bloque.entradas.map((entrada) => (
+                    <li>{entrada}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        ))
+      ) : (
+        <Bilingue
+          class="vacio"
+          texto={{ es: 'La trayectoria todavía no está publicada.', en: 'The CV is not published yet.' }}
+        />
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .pagina {
+    padding: var(--espacio-l);
+  }
+
+  h1 {
+    margin-top: 0;
+    padding-bottom: var(--espacio-m);
+    border-bottom: 1px solid var(--color-separador);
+    font-size: var(--texto-xl);
+    font-weight: 400;
+  }
+
+  .titulo-seccion {
+    font-size: var(--texto-m);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .anio h3 {
+    margin-bottom: var(--espacio-xs);
+    color: var(--color-acento);
+    font-size: var(--texto-m);
+    font-weight: 400;
+  }
+
+  .anio ul {
+    margin-top: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .anio li {
+    font-size: var(--texto-m);
+  }
+
+  .vacio {
+    color: var(--color-tenue);
+  }
+</style>

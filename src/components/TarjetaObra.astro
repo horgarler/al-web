@@ -1,0 +1,124 @@
+---
+/**
+ * Tarjeta de la galeria. Esqueleto: la capa del hover, la proporcion 8:5 y el
+ * comportamiento en pantallas tactiles llegan con el prompt 03.
+ *
+ * La imagen lleva `alt=""` a proposito: el nombre accesible del enlace ya lo
+ * da el titulo que va dentro del <a>.
+ */
+import { Picture } from 'astro:assets';
+
+import { PRESETS_IMAGEN } from '../config/site';
+import type { Obra } from '../lib/obras';
+
+export interface Props {
+  obra: Obra;
+  /** Etiqueta de la categoria, la misma que sale en el menu. */
+  etiquetaCategoria: string;
+  /** Las tarjetas de la primera fila se cargan sin diferir. */
+  eager?: boolean;
+  /** Solo la primera tarjeta de la pagina. */
+  prioridad?: boolean;
+}
+
+const { obra, etiquetaCategoria, eager = false, prioridad = false } = Astro.props;
+const preset = PRESETS_IMAGEN.miniatura;
+---
+
+<a class="tarjeta" href={`/obra/${obra.slug}/`}>
+  {
+    obra.portada ? (
+      <Picture
+        src={obra.portada.src}
+        formats={['webp']}
+        widths={[...preset.widths]}
+        sizes={preset.sizes}
+        alt=""
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        fetchpriority={prioridad ? 'high' : undefined}
+      />
+    ) : (
+      <span class="sin-imagen" aria-hidden="true"></span>
+    )
+  }
+
+  <span class="capa">
+    <span class="titulo">{obra.datos.titulo.es}</span>
+    <span class="categoria">{etiquetaCategoria}</span>
+  </span>
+</a>
+
+<style>
+  .tarjeta {
+    position: relative;
+    display: block;
+    aspect-ratio: 8 / 5;
+    overflow: hidden;
+    text-decoration: none;
+  }
+
+  .tarjeta :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .sin-imagen {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--color-separador);
+  }
+
+  /*
+   * El texto se oculta con opacity, nunca con display:none ni visibility, para
+   * que el enlace conserve su nombre accesible.
+   */
+  .capa {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacio-xs);
+    padding: var(--espacio-m);
+    background: rgb(0 0 0 / 0.83);
+    opacity: 0;
+    transition: opacity var(--transicion);
+    text-align: center;
+  }
+
+  .titulo {
+    color: var(--color-texto);
+    font-size: var(--texto-l);
+    text-transform: lowercase;
+  }
+
+  .categoria {
+    color: var(--color-texto-en);
+    font-size: var(--texto-s);
+    font-style: italic;
+    text-transform: lowercase;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .tarjeta:hover .capa {
+      opacity: 1;
+    }
+  }
+
+  .tarjeta:focus-visible .capa {
+    opacity: 1;
+  }
+
+  /* Sin hover (tactil), el titulo se ve siempre en una banda inferior. */
+  @media (hover: none) {
+    .capa {
+      opacity: 1;
+      justify-content: flex-end;
+      background: linear-gradient(to top, rgb(0 0 0 / 0.75), transparent 60%);
+    }
+  }
+</style>

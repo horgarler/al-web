@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { sitio } from '../config/site';
+---
+
+<BaseLayout titulo="Política de privacidad">
+  <div class="pagina">
+    <h1>Política de privacidad</h1>
+
+    <p class="pendiente">
+      TODO: redactar el texto y contrastarlo con las guías de la AEPD antes de
+      publicar. Tiene que explicar qué datos se recogen, para qué, cuánto tiempo
+      se conservan y quién los procesa.
+    </p>
+
+    <h2>Responsable</h2>
+    <p>TODO: nombre, NIF y dirección de contacto de la responsable.</p>
+
+    <h2>Qué datos se recogen y para qué</h2>
+    <p>
+      TODO: el formulario de contacto de {sitio.url} recoge nombre, correo
+      electrónico y el texto del mensaje, con la única finalidad de responder.
+    </p>
+
+    <h2>Base legal</h2>
+    <p>TODO: consentimiento de la persona interesada.</p>
+
+    <h2>Cuánto tiempo se conservan</h2>
+    <p>TODO: concretar el plazo.</p>
+
+    <h2>Quién los procesa</h2>
+    <ul>
+      <li>TODO: Cloudflare, Inc. — alojamiento del sitio y registros de acceso.</li>
+      <li>TODO: Web3Forms — tramitación del formulario de contacto.</li>
+      <li>TODO: Piensasolutions — correo del dominio.</li>
+    </ul>
+
+    <h2>Derechos</h2>
+    <p>
+      TODO: acceso, rectificación, supresión, oposición, limitación y
+      portabilidad, y cómo ejercerlos.
+    </p>
+
+    <h2>Cookies</h2>
+    <p>
+      TODO: confirmar con DevTools (Application) qué se guarda realmente antes de
+      afirmar nada.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .pagina {
+    max-width: 45rem;
+    padding: var(--espacio-l);
+  }
+
+  h1 {
+    margin-top: 0;
+    font-size: var(--texto-xl);
+    font-weight: 400;
+  }
+
+  h2 {
+    font-size: var(--texto-l);
+    font-weight: 700;
+  }
+
+  .pendiente {
+    padding: var(--espacio-s) var(--espacio-m);
+    border: 1px solid var(--color-acento);
+    color: var(--color-acento);
+  }
+</style>

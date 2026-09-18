@@ -1,0 +1,22 @@
+---
+import type { GetStaticPaths } from 'astro';
+
+import GaleriaObras from '../../components/GaleriaObras.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCategorias } from '../../lib/obras';
+
+export const getStaticPaths = (async () => {
+  const categorias = await getCategorias();
+  return categorias.map((categoria) => ({
+    params: { categoria: categoria.slug },
+    props: { categoria },
+  }));
+}) satisfies GetStaticPaths;
+
+const { categoria } = Astro.props;
+---
+
+<BaseLayout titulo={categoria.nombre.en} categoriaActiva={categoria.slug}>
+  <h1 class="solo-lectores">{categoria.nombre.en}</h1>
+  <GaleriaObras obras={categoria.obras} etiquetaCategoria={categoria.nombre.en} />
+</BaseLayout>

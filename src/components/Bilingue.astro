@@ -1,0 +1,29 @@
+---
+/**
+ * Pinta un texto en español y, debajo, su version en ingles en gris.
+ *
+ * El `lang="en"` es lo que permite a un lector de pantalla cambiar de voz.
+ * El salto va con <br>, no con espacios en blanco, porque Astro 7 los elimina
+ * entre elementos en linea (`compressHTML: 'jsx'`).
+ */
+export interface Props {
+  texto: { es: string; en?: string | null };
+  /** Elemento HTML que envuelve el texto. */
+  como?: string;
+  class?: string;
+}
+
+const { texto, como = 'p', class: clase } = Astro.props;
+const Elemento = como as keyof HTMLElementTagNameMap;
+---
+
+<Elemento class={clase}>
+  <span>{texto.es}</span>{
+    texto.en ? (
+      <>
+        <br />
+        <span class="en" lang="en">{texto.en}</span>
+      </>
+    ) : null
+  }
+</Elemento>

@@ -1,0 +1,15 @@
+# Redirecciones de Cloudflare. Astro copia este fichero tal cual a dist/.
+#
+# ORDEN IMPORTANTE: las reglas estaticas van ANTES que las dinamicas. Cuando
+# dos reglas encajan gana la primera, asi que una regla con comodin colocada
+# arriba se comeria a las excepciones de debajo.
+#
+# Limites del plan gratuito: 2.000 reglas estaticas y 100 con comodin.
+
+# --- Excepciones: obras cuyo slug de WordPress no es el de su carpeta ---
+# Van primero para que el comodin de /portfolios/ no las capture.
+/portfolios/hay-aguas/ /obra/some-waters/ 301
+/portfolios/el-deber-me-retiene-en-esta-lista/ /obra/el-deber-me-retiene-en-esta-isla/ 301
+
+# --- Fichas de obra: WordPress las servia en /portfolios/<slug>/ ---
+/portfolios/* /obra/:splat 301

@@ -1,0 +1,11 @@
+# Cabeceras de Cloudflare. Astro copia este fichero tal cual a dist/.
+
+# Los assets que genera Astro llevan un hash en el nombre, asi que su
+# contenido nunca cambia: se pueden cachear para siempre.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Las URLs de vista previa no deben indexarse. Solo afecta a *.workers.dev,
+# no al dominio propio.
+https://:proyecto.:subdominio.workers.dev/*
+  X-Robots-Tag: noindex

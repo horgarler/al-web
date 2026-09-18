@@ -1,0 +1,29 @@
+---
+import Bilingue from '../components/Bilingue.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout titulo="Página no encontrada">
+  <div class="pagina">
+    <h1>404</h1>
+    <Bilingue
+      texto={{
+        es: 'Esta página no existe.',
+        en: 'This page does not exist.',
+      }}
+    />
+    <p><a href="/">Home</a></p>
+  </div>
+</BaseLayout>
+
+<style>
+  .pagina {
+    padding: var(--espacio-l);
+  }
+
+  h1 {
+    margin-top: 0;
+    font-size: var(--texto-xl);
+    font-weight: 400;
+  }
+</style>

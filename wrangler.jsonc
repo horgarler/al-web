@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "angelalergo",
+  "compatibility_date": "2026-09-18",
+
+  // Sin "main": el sitio es estatico puro y no hay codigo de Worker.
+  "assets": {
+    "directory": "./dist",
+    // Sirve la 404.html de Astro en lugar de una respuesta vacia.
+    "not_found_handling": "404-page"
+  },
+
+  // Cada rama no productiva sube una version con `wrangler versions upload`
+  // y genera su propia URL de vista previa.
+  "preview_urls": true
+}

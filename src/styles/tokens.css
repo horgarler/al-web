@@ -1,0 +1,47 @@
+/*
+ * Tokens de diseño. En esta fase son minimos y neutros: el diseño fiel a las
+ * capturas llega con el prompt 02.
+ *
+ * El breakpoint movil NO esta aqui: las custom properties no funcionan dentro
+ * de una media query. Vive en `src/config/site.ts` como BREAKPOINT_MOVIL y el
+ * CSS repite el numero a mano, siempre con un comentario que lo recuerde.
+ */
+
+:root {
+  /* Color */
+  --color-fondo: #000;
+  --color-texto: #fff;
+  /* El texto en ingles va en gris, justo debajo del español. */
+  --color-texto-en: #999;
+  --color-tenue: #aaa;
+  --color-separador: #222;
+  --color-acento: #7aa5bd;
+  --color-foco: #fff;
+
+  /* Tipografia */
+  --fuente-base: "Times New Roman", Times, "Liberation Serif", "Noto Serif", serif;
+  --texto-s: 0.75rem;
+  --texto-m: 0.875rem;
+  --texto-l: 1rem;
+  --texto-xl: 1.25rem;
+  /* El ingles se pinta algo mas pequeño que el español, como en las capturas. */
+  --escala-en: 0.92;
+  --interlineado: 1.5;
+
+  /* Medidas */
+  --ancho-barra: 203px;
+  --espacio-xs: 0.25rem;
+  --espacio-s: 0.5rem;
+  --espacio-m: 1rem;
+  --espacio-l: 2rem;
+  --espacio-xl: 3rem;
+
+  /* Movimiento */
+  --transicion: 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transicion: 1ms;
+  }
+}

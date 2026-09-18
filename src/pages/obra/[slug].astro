@@ -1,0 +1,115 @@
+---
+import type { GetStaticPaths } from 'astro';
+
+import Bilingue from '../../components/Bilingue.astro';
+import CarruselObra from '../../components/CarruselObra.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { altDeObra, getAdyacentes, getCategorias } from '../../lib/obras';
+
+export const getStaticPaths = (async () => {
+  const categorias = await getCategorias();
+  const rutas = [];
+
+  for (const categoria of categorias) {
+    for (const obra of categoria.obras) {
+      const { anterior, siguiente } = await getAdyacentes(obra.slug);
+      rutas.push({
+        params: { slug: obra.slug },
+        props: { obra, categoria, anterior, siguiente },
+      });
+    }
+  }
+
+  return rutas;
+}) satisfies GetStaticPaths;
+
+const { obra, categoria, anterior, siguiente } = Astro.props;
+
+const alt = altDeObra(obra);
+// La ficha pinta lo que haya, en este orden. Las esculturas rellenan los dos
+// primeros y las performances el tercero, pero el componente es el mismo.
+const bloques = [obra.datos.materiales, obra.datos.medidas, obra.datos.contexto].filter(
+  (b) => b !== null && b !== undefined,
+);
+---
+
+<BaseLayout titulo={obra.datos.titulo.es} categoriaActiva={categoria.slug}>
+  <article class="ficha">
+    <CarruselObra imagenes={obra.imagenes} alt={alt.es} />
+
+    <div class="texto">
+      <h1 class="titulo">{obra.datos.titulo.es}</h1>
+
+      {bloques.map((bloque) => <Bilingue texto={bloque!} />)}
+
+      {
+        obra.datos.cliente ? (
+          <div class="cliente">
+            <h2>Client:</h2>
+            <Bilingue texto={obra.datos.cliente} />
+          </div>
+        ) : null
+      }
+
+      {
+        obra.datos.catalogo ? (
+          <p>
+            <a href={obra.datos.catalogo}>Download Catalog</a>
+          </p>
+        ) : null
+      }
+
+      {
+        obra.datos.textos.length > 0 ? (
+          <ul class="textos">
+            {obra.datos.textos.map((t) => (
+              <li>
+                <a href={t.fichero}>{t.titulo.es}</a>
+              </li>
+            ))}
+          </ul>
+        ) : null
+      }
+    </div>
+
+    <nav class="paso" aria-label="Navegación entre obras">
+      {anterior ? <a href={`/obra/${anterior.slug}/`}>← Previous</a> : <span></span>}
+      <a href={`/${categoria.slug}/`}>To Portfolio</a>
+      {siguiente ? <a href={`/obra/${siguiente.slug}/`}>Next →</a> : <span></span>}
+    </nav>
+  </article>
+</BaseLayout>
+
+<style>
+  .texto {
+    padding: var(--espacio-l);
+  }
+
+  .titulo {
+    margin-top: 0;
+    font-size: var(--texto-xl);
+    font-weight: 400;
+    text-transform: lowercase;
+  }
+
+  .cliente h2 {
+    margin-bottom: 0;
+    font-size: var(--texto-m);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .textos {
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .paso {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--espacio-m);
+    padding: var(--espacio-m) var(--espacio-l);
+    border-top: 1px solid var(--color-separador);
+    font-size: var(--texto-s);
+  }
+</style>

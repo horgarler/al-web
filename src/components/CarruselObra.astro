@@ -1,0 +1,65 @@
+---
+/**
+ * Carrusel de la ficha de obra. Scroll-snap nativo, sin JavaScript: se pasa
+ * arrastrando, con la rueda o tabulando. Los botones de anterior/siguiente
+ * son cosa del prompt siguiente.
+ */
+import { Picture } from 'astro:assets';
+
+import { PRESETS_IMAGEN } from '../config/site';
+import type { Imagen } from '../lib/obras';
+
+export interface Props {
+  imagenes: Imagen[];
+  /** Texto alternativo de la obra, en español. */
+  alt: string;
+}
+
+const { imagenes, alt } = Astro.props;
+const preset = PRESETS_IMAGEN.detalle;
+---
+
+{
+  imagenes.length > 0 ? (
+    <div class="carrusel" tabindex="0" role="group" aria-label={`Imágenes de ${alt}`}>
+      {imagenes.map((imagen, i) => (
+        <figure class="lamina">
+          <Picture
+            src={imagen.src}
+            formats={['webp']}
+            widths={[...preset.widths]}
+            sizes={preset.sizes}
+            alt={i === 0 ? alt : ''}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchpriority={i === 0 ? 'high' : undefined}
+          />
+        </figure>
+      ))}
+    </div>
+  ) : null
+}
+
+<style>
+  .carrusel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .carrusel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lamina {
+    flex: 0 0 100%;
+    margin: 0;
+    scroll-snap-align: center;
+  }
+
+  .lamina :global(img) {
+    width: 100%;
+    height: auto;
+  }
+</style>
