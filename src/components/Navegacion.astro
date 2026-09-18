@@ -1,22 +1,31 @@
 ---
 /**
- * Menu lateral. En esta fase es una lista plana con el estado activo puesto;
- * la barra fija, el menu movil y el diseño llegan con el prompt 02.
+ * Contenido de la barra lateral: logo, separador, apartados y pie.
  *
- * Las etiquetas van en ingles (`nombre.en` de cada categoria) y en mayusculas
- * por CSS, nunca escritas en mayusculas en el texto.
+ * Lo comparten la barra fija de escritorio y el panel del menú móvil, así que
+ * aquí no hay nada de posicionamiento: solo la pila de elementos alineada a la
+ * derecha. Quien lo usa decide dónde va.
+ *
+ * Medidas y colores salen de `docs/referencia/Sculptures.png` y del CSS del
+ * tema actual. Ver `src/styles/tokens.css`.
  */
-import { APARTADOS_FIJOS } from '../config/site';
-import { getCategorias } from '../lib/obras';
+import { Image } from 'astro:assets';
+
+import { APARTADOS_FIJOS, sitio } from '../config/site';
+import { CREDITOS, LOGO } from '../config/plantilla';
+import { RE_MARCADOR } from '../lib/convenciones';
+import { getCategorias, resolverImagen } from '../lib/obras';
 
 export interface Props {
-  /** Ruta de la pagina actual, con barra final. */
+  /** Ruta de la página actual, con barra final. */
   rutaActual: string;
-  /** En una ficha de obra, el slug de su categoria: se marca activa. */
+  /** En una ficha de obra, el slug de su categoría: se marca activa. */
   categoriaActiva?: string | null;
+  /** El panel móvil necesita sus propios id para el foco. */
+  dentroDelPanel?: boolean;
 }
 
-const { rutaActual, categoriaActiva = null } = Astro.props;
+const { rutaActual, categoriaActiva = null, dentroDelPanel = false } = Astro.props;
 
 const categorias = await getCategorias();
 
@@ -30,7 +39,7 @@ const apartados = [
   ...categorias.map((c) => ({
     etiqueta: c.nombre.en,
     ruta: `/${c.slug}/`,
-    // El prefijo numerico de la carpeta es la posicion en el menu.
+    // El prefijo numérico de la carpeta es la posición en el menú.
     posicion: c.numero,
     slug: c.slug,
   })),
@@ -38,46 +47,162 @@ const apartados = [
 
 const esActivo = (ruta: string, slug: string | null) =>
   ruta === rutaActual || (slug !== null && slug === categoriaActiva);
+
+/*
+ * El logo es un logotipo de texto salvo que en `plantilla.ts` se ponga la ruta
+ * de una imagen. Si se pone y no resuelve, se avisa y se cae al texto.
+ */
+const logo = LOGO === null || RE_MARCADOR.test(LOGO) ? null : await resolverImagen(LOGO);
+if (LOGO !== null && !RE_MARCADOR.test(LOGO) && logo === null) {
+  console.warn(`[plantilla] LOGO apunta a "${LOGO}" y no existe esa imagen.`);
+}
+
+const creditosPendientes = RE_MARCADOR.test(CREDITOS);
+const anio = new Date().getFullYear();
 ---
 
-<nav class="menu" aria-label="Principal">
-  <ul>
-    {
-      apartados.map((a) => (
-        <li>
-          <a href={a.ruta} aria-current={esActivo(a.ruta, a.slug) ? 'page' : undefined}>
-            {a.etiqueta}
-          </a>
-        </li>
-      ))
-    }
-  </ul>
-</nav>
+<div class="barra-contenido">
+  <div class="cabecera">
+    <a class="logo" href="/" aria-label={`${sitio.nombre} — inicio`}>
+      {
+        logo ? (
+          <Image src={logo} alt="" width={24} height={24} loading="eager" />
+        ) : (
+          <span class="logo-texto">{sitio.nombre}</span>
+        )
+      }
+    </a>
+
+    <hr class="separador" />
+
+    <nav aria-label={dentroDelPanel ? 'Principal, móvil' : 'Principal'}>
+      <ul>
+        {
+          apartados.map((a) => (
+            <li>
+              <a href={a.ruta} aria-current={esActivo(a.ruta, a.slug) ? 'page' : undefined}>
+                {a.etiqueta}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+
+  <footer class="pie">
+    <p class="copyright">© {anio} {sitio.nombre}</p>
+    {creditosPendientes ? null : <p class="creditos">{CREDITOS}</p>}
+  </footer>
+</div>
 
 <style>
-  .menu ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .barra-contenido {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100%;
+    text-align: right;
   }
 
-  .menu a {
+  /* --- Logo --- */
+
+  .logo {
     display: block;
-    padding: var(--espacio-xs) 0;
-    color: var(--color-tenue);
-    font-size: var(--texto-s);
-    font-weight: 700;
-    text-transform: uppercase;
+    padding-block-start: var(--barra-logo-top);
     text-decoration: none;
   }
 
-  .menu a[aria-current='page'] {
+  .logo :global(img) {
+    height: var(--barra-logo-alto);
+    width: auto;
+    margin-inline-start: auto;
+  }
+
+  /* Logotipo de texto: rojo y en Roboto, no en la serif del resto del menú. */
+  .logo-texto {
+    color: var(--color-logo);
+    font-family: var(--fuente-logo);
+    font-size: var(--texto-menu);
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: var(--barra-logo-alto);
+  }
+
+  /* --- Separador --- */
+
+  .separador {
+    width: var(--barra-separador-ancho);
+    margin: 0 0 0 auto;
+    border: 0;
+    border-block-start: 1px dotted var(--color-separador);
+    /* El separador cae en y=84, contando desde el final del logo. */
+    margin-block-start: calc(
+      var(--barra-separador-top) - var(--barra-logo-top) - var(--barra-logo-alto) - 1px
+    );
+  }
+
+  /* --- Apartados --- */
+
+  nav {
+    /*
+     * La primera línea del menú cae en y=110, pero eso es donde empieza la
+     * tinta: la caja de línea arranca antes, porque el interlineado de 22,5px
+     * reparte el hueco sobrante por encima y por debajo de las mayúsculas.
+     * --barra-leading es ese hueco de arriba, medido sobre la captura.
+     */
+    margin-block-start: calc(
+      var(--barra-menu-top) - var(--barra-separador-top) - 1px - var(--barra-leading)
+    );
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li a {
+    display: block;
+    /* 22,5px de interlínea con un cuerpo de 14px. */
+    line-height: var(--barra-interlinea);
+    color: var(--color-tenue);
+    font-size: var(--texto-menu);
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color var(--transicion);
+  }
+
+  li a[aria-current='page'] {
     color: var(--color-texto);
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .menu a:hover {
+    li a:hover {
       color: var(--color-texto);
     }
+  }
+
+  /* --- Pie --- */
+
+  .pie {
+    padding-block-start: var(--espacio-xl);
+    font-family: var(--fuente-cursiva);
+    font-size: var(--texto-pie);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .pie p {
+    margin: 0;
+  }
+
+  .copyright {
+    color: var(--color-acento);
+  }
+
+  .creditos {
+    color: var(--color-tenue);
   }
 </style>

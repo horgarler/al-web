@@ -1,6 +1,8 @@
 ---
+import { Font } from 'astro:assets';
+
+import MenuMovil from '../components/MenuMovil.astro';
 import Navegacion from '../components/Navegacion.astro';
-import Pie from '../components/Pie.astro';
 import { sitio } from '../config/site';
 import '../styles/global.css';
 
@@ -26,6 +28,7 @@ const {
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? sitio.url);
 const tituloCompleto = titulo === sitio.nombre ? titulo : `${titulo} · ${sitio.nombre}`;
+const rutaActual = Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -45,6 +48,10 @@ const tituloCompleto = titulo === sitio.nombre ? titulo : `${titulo} · ${sitio.
     {imagenOg ? <meta property="og:image" content={imagenOg} /> : null}
     <meta name="twitter:card" content="summary_large_image" />
 
+    {/* Autoalojadas: el navegador no le pide nada a Google Fonts. */}
+    <Font cssVariable="--fuente-cursiva" preload />
+    <Font cssVariable="--fuente-logo" preload />
+
     <script is:inline>
       // Quita la clase no-js cuanto antes, para que el CSS pueda distinguir
       // entre "sin JavaScript" y "con JavaScript" sin parpadeos.
@@ -57,9 +64,10 @@ const tituloCompleto = titulo === sitio.nombre ? titulo : `${titulo} · ${sitio.
 
     <div class="disposicion">
       <aside class="barra">
-        <Navegacion rutaActual={Astro.url.pathname} categoriaActiva={categoriaActiva} />
-        <Pie />
+        <Navegacion rutaActual={rutaActual} categoriaActiva={categoriaActiva} />
       </aside>
+
+      <MenuMovil rutaActual={rutaActual} categoriaActiva={categoriaActiva} />
 
       <main id="contenido" class="contenido">
         <slot />
@@ -70,33 +78,38 @@ const tituloCompleto = titulo === sitio.nombre ? titulo : `${titulo} · ${sitio.
 
 <style>
   .disposicion {
-    display: grid;
-    /* El diseño fiel (barra fija, menu movil) llega con el prompt 02. */
-    grid-template-columns: var(--ancho-barra) 1fr;
+    min-height: 100vh;
     min-height: 100dvh;
   }
 
   .barra {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: var(--espacio-l);
-    padding: var(--espacio-m);
-    text-align: right;
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    /*
+     * 265px es el ancho medido en las capturas. Con clamp() se estrecha en
+     * anchos intermedios sin que las etiquetas largas desborden.
+     */
+    width: clamp(180px, 18vw, var(--ancho-barra));
+    padding-inline-end: var(--barra-margen-derecho);
+    padding-block: 0 var(--barra-margen-inferior);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .contenido {
     min-width: 0;
+    margin-inline-start: clamp(180px, 18vw, var(--ancho-barra));
   }
 
   /* 768px = BREAKPOINT_MOVIL en src/config/site.ts */
   @media (max-width: 768px) {
-    .disposicion {
-      grid-template-columns: 1fr;
+    .barra {
+      display: none;
     }
 
-    .barra {
-      text-align: left;
+    .contenido {
+      margin-inline-start: 0;
     }
   }
 </style>

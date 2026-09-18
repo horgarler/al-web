@@ -1,13 +1,38 @@
 ---
-import HeroInicio from '../components/HeroInicio.astro';
+import HeroInicio, { type Lamina } from '../components/HeroInicio.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { IMAGENES_HOME } from '../config/plantilla';
 import { sitio } from '../config/site';
+import { RE_MARCADOR } from '../lib/convenciones';
+import { resolverImagen } from '../lib/obras';
 
-// El prompt 02 sustituye esto por la rotacion de tres imagenes que se
-// configuran en src/config/plantilla.ts.
+const laminas: Lamina[] = await Promise.all(
+  IMAGENES_HOME.map(async (item): Promise<Lamina> => {
+    const pendiente = RE_MARCADOR.test(item.ruta);
+    const imagen = pendiente ? null : await resolverImagen(item.ruta);
+
+    if (!pendiente && imagen === null) {
+      console.warn(`[plantilla] la imagen de la home "${item.ruta}" no existe.`);
+    }
+
+    return {
+      imagen,
+      alt: item.alt.es,
+      posicion: item.posicion ?? '50% 50%',
+      marcador: imagen === null ? item.ruta : null,
+    };
+  }),
+);
+
+const sinResolver = laminas.filter((l) => l.imagen === null).length;
+if (sinResolver > 0) {
+  console.warn(
+    `[plantilla] ${sinResolver} de ${laminas.length} imágenes de la home siguen siendo marcadores.`,
+  );
+}
 ---
 
 <BaseLayout titulo={sitio.nombre} sinScroll>
   <h1 class="solo-lectores">{sitio.nombre}</h1>
-  <HeroInicio marcador="[home_img1]" />
+  <HeroInicio laminas={laminas} />
 </BaseLayout>

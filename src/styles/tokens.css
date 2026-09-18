@@ -1,47 +1,89 @@
 /*
- * Tokens de diseño. En esta fase son minimos y neutros: el diseño fiel a las
- * capturas llega con el prompt 02.
+ * Tokens de diseño.
  *
- * El breakpoint movil NO esta aqui: las custom properties no funcionan dentro
+ * Los colores y los tamaños salen del tema Pixia de la web actual (leídos de su
+ * CSS) y de medir el píxel de `docs/referencia/Sculptures.png`, que está a
+ * escala 1:1 en píxeles CSS.
+ *
+ * El breakpoint móvil NO está aquí: las custom properties no funcionan dentro
  * de una media query. Vive en `src/config/site.ts` como BREAKPOINT_MOVIL y el
- * CSS repite el numero a mano, siempre con un comentario que lo recuerde.
+ * CSS repite el número a mano, siempre con un comentario que lo recuerde.
  */
 
 :root {
-  /* Color */
+  /* --- Color, del personalizador del tema --- */
   --color-fondo: #000;
   --color-texto: #fff;
-  /* El texto en ingles va en gris, justo debajo del español. */
-  --color-texto-en: #999;
-  --color-tenue: #aaa;
-  --color-separador: #222;
-  --color-acento: #7aa5bd;
+  /* Gris del tema: menú inactivo, cuerpo de texto y línea de créditos. */
+  --color-tenue: #9c9e9f;
+  /* El inglés va en el mismo gris que el resto del texto secundario. */
+  --color-texto-en: #9c9e9f;
+  --color-hover: #c4c6c7;
+  --color-apagado: #4c4e4f;
+  --color-separador: #2a2a2a;
+  /* Azul grisáceo del copyright, medido en la captura. */
+  --color-acento: #5896b6;
   --color-foco: #fff;
+  /* Rojo del logotipo. Es el único sitio donde tocarlo. */
+  --color-logo: #f00;
 
-  /* Tipografia */
+  /* --- Tipografía --- */
+  /*
+   * El tema no declara ninguna font-family para el menú ni el cuerpo: se queda
+   * con la serif por defecto del navegador, que en Windows es Times New Roman.
+   */
   --fuente-base: "Times New Roman", Times, "Liberation Serif", "Noto Serif", serif;
-  --texto-s: 0.75rem;
+  /*
+   * `--fuente-cursiva` y `--fuente-logo` las define Astro con la familia
+   * autoalojada y sus respaldos; se configuran en astro.config.ts y no se
+   * declaran aquí para no pisarlas. La cursiva (Playfair Display) es para las
+   * dos líneas del pie; Roboto, solo para el logotipo.
+   */
+
+  --texto-menu: 0.875rem; /* 14px: lo que fija el personalizador del tema */
+  --texto-pie: 0.75rem; /* 12px: .special_italic */
+  --texto-s: 0.8125rem;
   --texto-m: 0.875rem;
   --texto-l: 1rem;
-  --texto-xl: 1.25rem;
-  /* El ingles se pinta algo mas pequeño que el español, como en las capturas. */
+  --texto-xl: 1.375rem;
+  /* El inglés se pinta algo más pequeño que el español, como en las capturas. */
   --escala-en: 0.92;
   --interlineado: 1.5;
 
-  /* Medidas */
-  --ancho-barra: 203px;
+  /* --- Medidas de la barra lateral, medidas sobre la captura --- */
+  --ancho-barra: 265px;
+  --barra-margen-derecho: 41px;
+  --barra-logo-top: 31px;
+  --barra-logo-alto: 24px;
+  --barra-separador-ancho: 57px;
+  --barra-separador-top: 84px;
+  --barra-menu-top: 110px;
+  --barra-interlinea: 22.5px;
+  /* Hueco que el interlineado deja por encima de las mayúsculas, a 14px. */
+  --barra-leading: 6px;
+  --barra-margen-inferior: 49px;
+
+  /* --- Espaciado general --- */
   --espacio-xs: 0.25rem;
   --espacio-s: 0.5rem;
   --espacio-m: 1rem;
   --espacio-l: 2rem;
   --espacio-xl: 3rem;
 
-  /* Movimiento */
+  /* --- Menú móvil --- */
+  --boton-movil: 46px;
+  --boton-movil-margen: 16px;
+
+  /* --- Movimiento --- */
   --transicion: 200ms ease;
+  /* Duración del fundido de la home. La fuente de verdad es ROTACION.fundido
+     en src/config/plantilla.ts; el componente la inyecta en línea. */
+  --fundido-home: 600ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --transicion: 1ms;
+    --fundido-home: 1ms;
   }
 }
