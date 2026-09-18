@@ -1,0 +1,10 @@
+.claude/
+
+# Solo para trabajar con Claude, no forma parte del proyecto.
+# Anclado a la raiz: sin la barra inicial tambien ignoraria public/docs/,
+# que es donde van los PDFs de catalogo.
+/docs/
+
+# Los originales viven fuera del repo (angelalergo/recursos). Esta linea es
+# solo un seguro por si la carpeta acaba aqui dentro por accidente.
+/recursos/
