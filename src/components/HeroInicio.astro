@@ -1,60 +1,94 @@
 ---
 /**
- * Imagen de la home. En esta fase es una sola imagen fija; la rotacion de tres
- * con fundido cruzado llega con el prompt 02.
+ * Rotación de la home: tres imágenes a sangre que se van cruzando con un
+ * fundido, en bucle y sin controles.
+ *
+ * Los tiempos son los de la web actual (`data-delay="3000"` en su slider y el
+ * fundido por defecto de FlexSlider) y se pueden tocar en `plantilla.ts`.
+ *
+ * Sin JavaScript se queda fija la primera imagen, que es la única con
+ * `opacity: 1` de salida. No lleva botón de pausa: es una decisión tomada.
  */
 import { Picture } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 
 import { PRESETS_IMAGEN } from '../config/site';
+import { ROTACION } from '../config/plantilla';
+
+export type Lamina = {
+  imagen: ImageMetadata | null;
+  alt: string;
+  posicion: string;
+  /** Nombre del marcador, si la imagen todavía no está puesta. */
+  marcador: string | null;
+};
 
 export interface Props {
-  imagen?: ImageMetadata | null;
-  alt?: string;
-  /** `object-position`, para controlar el recorte en movil. */
-  posicion?: string;
-  /** Nombre del marcador, si la imagen todavia no esta puesta. */
-  marcador?: string | null;
+  laminas: Lamina[];
 }
 
-const {
-  imagen = null,
-  alt = '',
-  posicion = '50% 50%',
-  marcador = null,
-} = Astro.props;
+const { laminas } = Astro.props;
 
-const preset = PRESETS_IMAGEN.hero;
+/*
+ * Las tres portadas son de 1280×1024, así que pedir más ancho solo generaría
+ * escalados que no existen.
+ */
+const anchos = PRESETS_IMAGEN.hero.widths.filter((w) => w <= 1280);
+const sizes = PRESETS_IMAGEN.hero.sizes;
 ---
 
-<div class="hero">
+<div
+  class="hero"
+  data-rotacion
+  data-intervalo={ROTACION.intervalo}
+  data-fundido={ROTACION.fundido}
+  style={`--fundido-home: ${ROTACION.fundido}ms`}
+>
   {
-    imagen ? (
-      <Picture
-        src={imagen}
-        formats={['webp']}
-        widths={[...preset.widths]}
-        sizes={preset.sizes}
-        alt={alt}
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
-        style={`object-position: ${posicion}`}
-      />
-    ) : (
-      <p class="marcador">{marcador ?? 'Sin imagen'}</p>
-    )
+    laminas.map((lamina, i) => (
+      <div class="lamina" data-lamina data-activa={i === 0 ? '' : undefined}>
+        {lamina.imagen ? (
+          <Picture
+            src={lamina.imagen}
+            formats={['webp']}
+            widths={anchos}
+            sizes={sizes}
+            alt={lamina.alt}
+            loading={i === 0 ? 'eager' : undefined}
+            fetchpriority={i === 0 ? 'high' : 'low'}
+            decoding="async"
+            style={`object-position: ${lamina.posicion}`}
+          />
+        ) : (
+          <p class="marcador">{lamina.marcador ?? 'Sin imagen'}</p>
+        )}
+      </div>
+    ))
   }
 </div>
 
 <style>
   .hero {
+    position: relative;
     width: 100%;
-    height: 100%;
-    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--color-fondo);
   }
 
-  .hero :global(img) {
+  .lamina {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity var(--fundido-home) ease-in-out;
+  }
+
+  .lamina[data-activa] {
+    opacity: 1;
+  }
+
+  .lamina :global(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -67,10 +101,61 @@ const preset = PRESETS_IMAGEN.hero;
     justify-content: center;
     width: 100%;
     height: 100%;
-    min-height: 100dvh;
     margin: 0;
     background: #1a1a1a;
     color: var(--color-tenue);
     font-family: monospace;
   }
 </style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rotacion]').forEach((raiz) => {
+    const laminas = Array.from(raiz.querySelectorAll<HTMLElement>('[data-lamina]'));
+    if (laminas.length < 2) return;
+
+    // Con movimiento reducido no se rota: se queda la primera.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const intervalo = Number(raiz.dataset['intervalo'] ?? 3000);
+    let actual = 0;
+    let temporizador: number | undefined;
+
+    async function pasar() {
+      const siguiente = (actual + 1) % laminas.length;
+
+      // No se cambia hasta que la siguiente esté decodificada: así el fundido
+      // no arranca sobre un hueco en blanco.
+      const img = laminas[siguiente]!.querySelector('img');
+      if (img !== null) {
+        try {
+          await img.decode();
+        } catch {
+          // Si falla la decodificación se pasa igual: mejor eso que congelarse.
+        }
+      }
+
+      laminas[actual]!.removeAttribute('data-activa');
+      laminas[siguiente]!.setAttribute('data-activa', '');
+      actual = siguiente;
+    }
+
+    function arrancar() {
+      if (temporizador !== undefined) return;
+      temporizador = window.setInterval(() => void pasar(), intervalo);
+    }
+
+    function parar() {
+      if (temporizador === undefined) return;
+      window.clearInterval(temporizador);
+      temporizador = undefined;
+    }
+
+    // Con la pestaña oculta no tiene sentido seguir gastando.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) parar();
+      else arrancar();
+    });
+
+    arrancar();
+  });
+</script>

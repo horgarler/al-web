@@ -1,0 +1,268 @@
+---
+/**
+ * Menú de 768px para abajo: un botón circular arriba a la derecha que abre un
+ * panel a pantalla completa con el mismo contenido que la barra lateral.
+ *
+ * Sin JavaScript (`html.no-js`) no hay botón: el panel se queda visible como
+ * una lista estática encima del contenido, que es lo único que funciona sin
+ * poder alternar nada.
+ */
+import Menu from '@lucide/astro/icons/menu';
+import X from '@lucide/astro/icons/x';
+
+import Navegacion from './Navegacion.astro';
+import { BREAKPOINT_MOVIL } from '../config/site';
+
+export interface Props {
+  rutaActual: string;
+  categoriaActiva?: string | null;
+}
+
+const { rutaActual, categoriaActiva = null } = Astro.props;
+---
+
+<div class="menu-movil" data-menu-movil data-breakpoint={BREAKPOINT_MOVIL}>
+  <button
+    type="button"
+    class="boton"
+    data-boton
+    aria-expanded="false"
+    aria-controls="panel-menu"
+    aria-label="Abrir menú / Open menu"
+  >
+    <Menu class="icono icono-abrir" size={22} stroke-width={1.5} />
+    <X class="icono icono-cerrar" size={22} stroke-width={1.5} />
+  </button>
+
+  <div class="panel" id="panel-menu" data-panel hidden>
+    <Navegacion rutaActual={rutaActual} categoriaActiva={categoriaActiva} dentroDelPanel />
+  </div>
+</div>
+
+<style>
+  /* 768px = BREAKPOINT_MOVIL en src/config/site.ts */
+  @media (min-width: 769px) {
+    .menu-movil {
+      display: none;
+    }
+  }
+
+  /* --- Botón --- */
+
+  .boton {
+    position: fixed;
+    z-index: 20;
+    inset-block-start: calc(var(--boton-movil-margen) + env(safe-area-inset-top, 0px));
+    inset-inline-end: calc(var(--boton-movil-margen) + env(safe-area-inset-right, 0px));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--boton-movil);
+    height: var(--boton-movil);
+    padding: 0;
+    border: 1px solid rgb(255 255 255 / 0.25);
+    border-radius: 50%;
+    background: var(--color-fondo);
+    color: var(--color-texto);
+    cursor: pointer;
+    transition:
+      transform var(--transicion),
+      opacity var(--transicion);
+  }
+
+  /* Oculto al bajar. Nunca se aplica con el panel abierto. */
+  .menu-movil[data-oculto] .boton {
+    transform: translateY(calc(-1 * (var(--boton-movil) + var(--boton-movil-margen) * 2)));
+    opacity: 0;
+  }
+
+  .icono {
+    position: absolute;
+  }
+
+  .icono-cerrar {
+    display: none;
+  }
+
+  .boton[aria-expanded='true'] .icono-abrir {
+    display: none;
+  }
+
+  .boton[aria-expanded='true'] .icono-cerrar {
+    display: block;
+  }
+
+  /* --- Panel --- */
+
+  .panel {
+    position: fixed;
+    z-index: 19;
+    inset: 0;
+    padding-block: env(safe-area-inset-top, 0px) var(--barra-margen-inferior);
+    padding-inline: var(--espacio-l)
+      calc(var(--barra-margen-derecho) + env(safe-area-inset-right, 0px));
+    background: var(--color-fondo);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: aparecer 150ms ease;
+  }
+
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel {
+      animation: none;
+    }
+  }
+
+  /*
+   * Sin JavaScript no hay forma de alternar nada: se esconde el botón y el
+   * panel se queda como una lista estática, en flujo y sin tapar la página.
+   */
+  :global(html.no-js) .boton {
+    display: none;
+  }
+
+  :global(html.no-js) .panel {
+    position: static;
+    display: block !important;
+    animation: none;
+    padding-block-end: var(--espacio-l);
+  }
+</style>
+
+<script>
+  /*
+   * El panel se abre y se cierra a mano, sin dependencias. El botón se esconde
+   * al bajar y reaparece al subir, salvo que el menú esté abierto o el foco
+   * esté dentro.
+   */
+  const UMBRAL = 10;
+  const ZONA_SEGURA = 50;
+
+  document.querySelectorAll<HTMLElement>('[data-menu-movil]').forEach((raiz) => {
+    const botonEncontrado = raiz.querySelector<HTMLButtonElement>('[data-boton]');
+    const panelEncontrado = raiz.querySelector<HTMLElement>('[data-panel]');
+    if (botonEncontrado === null || panelEncontrado === null) return;
+
+    // Locales ya no nulos: TypeScript no propaga el estrechamiento a las
+    // funciones que se declaran mas abajo.
+    const boton: HTMLButtonElement = botonEncontrado;
+    const panel: HTMLElement = panelEncontrado;
+
+    const breakpoint = Number(raiz.dataset['breakpoint'] ?? 768);
+    const esEscritorio = window.matchMedia(`(min-width: ${breakpoint + 1}px)`);
+    let abierto = false;
+
+    const focarles = () =>
+      Array.from(
+        panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'),
+      ).filter((el) => el.offsetParent !== null);
+
+    function abrir() {
+      abierto = true;
+      panel.hidden = false;
+      boton.setAttribute('aria-expanded', 'true');
+      boton.setAttribute('aria-label', 'Cerrar menú / Close menu');
+      document.body.style.overflow = 'hidden';
+      // El resto de la página deja de ser alcanzable mientras el panel está abierto.
+      document.querySelectorAll<HTMLElement>('main, aside').forEach((el) => {
+        el.inert = true;
+      });
+      raiz.removeAttribute('data-oculto');
+      focarles()[0]?.focus();
+    }
+
+    function cerrar(devolverFoco = true) {
+      abierto = false;
+      panel.hidden = true;
+      boton.setAttribute('aria-expanded', 'false');
+      boton.setAttribute('aria-label', 'Abrir menú / Open menu');
+      document.body.style.overflow = '';
+      document.querySelectorAll<HTMLElement>('main, aside').forEach((el) => {
+        el.inert = false;
+      });
+      if (devolverFoco) boton.focus();
+    }
+
+    boton.addEventListener('click', () => {
+      if (abierto) cerrar();
+      else abrir();
+    });
+
+    // Un enlace del panel cierra el menú antes de navegar.
+    panel.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a') !== null) cerrar(false);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!abierto) return;
+
+      if (e.key === 'Escape') {
+        cerrar();
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      // Foco atrapado dentro del panel.
+      const items = focarles();
+      if (items.length === 0) return;
+      const primero = items[0]!;
+      const ultimo = items[items.length - 1]!;
+
+      if (e.shiftKey && document.activeElement === primero) {
+        e.preventDefault();
+        ultimo.focus();
+      } else if (!e.shiftKey && document.activeElement === ultimo) {
+        e.preventDefault();
+        primero.focus();
+      }
+    });
+
+    // Si la ventana pasa a escritorio con el panel abierto, se cierra.
+    esEscritorio.addEventListener('change', (e) => {
+      if (e.matches && abierto) cerrar(false);
+    });
+
+    // --- Ocultar al bajar, mostrar al subir ---
+    let ultimo = window.scrollY;
+    let pendiente = false;
+
+    const alHacerScroll = () => {
+      // iOS rebota y devuelve valores negativos: se ignoran.
+      const y = Math.max(0, window.scrollY);
+      const delta = y - ultimo;
+
+      if (Math.abs(delta) < UMBRAL) {
+        pendiente = false;
+        return;
+      }
+
+      if (abierto || y < ZONA_SEGURA || panel.contains(document.activeElement)) {
+        raiz.removeAttribute('data-oculto');
+      } else if (delta > 0) {
+        raiz.setAttribute('data-oculto', '');
+      } else {
+        raiz.removeAttribute('data-oculto');
+      }
+
+      ultimo = y;
+      pendiente = false;
+    };
+
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (pendiente) return;
+        pendiente = true;
+        requestAnimationFrame(alHacerScroll);
+      },
+      { passive: true },
+    );
+  });
+</script>
