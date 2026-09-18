@@ -46,6 +46,8 @@ const CONCURRENCIA = 4;
 
 const DESTINO_OBRAS = 'src/content/obras';
 const DESTINO_PDFS = 'public/docs';
+/** Secciones que no son galeria: home, news... Imagenes sueltas, sin ficha. */
+const DESTINO_SUELTAS = 'src/content';
 
 const args = parsearArgumentos(process.argv.slice(2));
 const log = crearRegistro();
@@ -142,10 +144,54 @@ for (const carpetaCat of subdirectorios(raizImg)) {
   const rutaCat = join(raizImg, carpetaCat);
   const carpetasObra = subdirectorios(rutaCat);
 
-  // Una categoria de galeria tiene subcarpetas de obra. Home, news y
-  // trajectory son imagenes sueltas y alimentan otras partes del sitio.
+  /*
+   * Una categoria de galeria tiene subcarpetas de obra. Home, news y trajectory
+   * son imagenes sueltas: no son obras, no tienen ficha ni slug propio, y van a
+   * `src/content/<slug>/` para que las use quien las necesite (la rotacion de
+   * la home, por ejemplo).
+   *
+   * Como no son obras, no se les exige la convencion `<base>-<YY>`: basta con
+   * sanear el nombre para poder servirlo.
+   */
   if (carpetasObra.length === 0) {
-    log.info(`· ${carpetaCat}: sin subcarpetas de obra, no es una galeria. Se omite.`);
+    const sueltas = ficheros(rutaCat).filter((f) => /\.(jpe?g|png|webp)$/i.test(f));
+    if (sueltas.length === 0) {
+      log.info(`· ${carpetaCat}: vacia, nada que hacer.`);
+      continue;
+    }
+
+    log.info(`· ${carpetaCat} (${sueltas.length} imagenes sueltas)`);
+
+    const noAdmitidas = ficheros(rutaCat).filter(
+      (f) => /\.[a-z0-9]+$/i.test(f) && !/\.(jpe?g|png|webp|txt|md|ya?ml)$/i.test(f),
+    );
+    for (const f of noAdmitidas) {
+      log.aviso(`${carpetaCat}/${f}: formato no admitido, se omite`);
+    }
+
+    for (const fichero of sueltas) {
+      const ext = (fichero.split('.').pop() ?? 'jpg').toLowerCase();
+      const base = sanearNombreFichero(fichero).replace(/\.[^.]+$/, '');
+      const carpetaDestino = join(DESTINO_SUELTAS, cat.slug);
+      const rutaOrigenAbs = join(rutaCat, fichero);
+
+      generados.add(normalizarRuta(join(carpetaDestino, `${base}.${extensionNormalizada(ext)}`)));
+      generados.add(normalizarRuta(join(carpetaDestino, `${base}.jpg`)));
+
+      const bytes = statSync(rutaOrigenAbs).size;
+      bytesAntes += bytes;
+
+      if (
+        desactualizado(rutaOrigenAbs, join(carpetaDestino, `${base}.${extensionNormalizada(ext)}`))
+      ) {
+        aProcesar.push({
+          origen: rutaOrigenAbs,
+          destino: join(carpetaDestino, base),
+          bytesOrigen: bytes,
+        });
+      }
+    }
+
     continue;
   }
 

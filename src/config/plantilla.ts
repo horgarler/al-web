@@ -29,17 +29,17 @@ export type ImagenHome = {
  */
 export const IMAGENES_HOME: ImagenHome[] = [
   {
-    ruta: '[home_img1]',
+    ruta: 'home/cover2-angelalergo.jpg',
     alt: { es: 'TODO: describir la primera imagen', en: null },
     posicion: '50% 50%',
   },
   {
-    ruta: '[home_img2]',
+    ruta: 'home/cover1-angelalergo.jpg',
     alt: { es: 'TODO: describir la segunda imagen', en: null },
     posicion: '50% 50%',
   },
   {
-    ruta: '[home_img3]',
+    ruta: 'home/lergocover.jpg',
     alt: { es: 'TODO: describir la tercera imagen', en: null },
     posicion: '50% 50%',
   },

@@ -38,6 +38,16 @@ const RUTAS_META = Object.keys(
   import.meta.glob('/src/content/obras/*/*/meta.yaml'),
 );
 
+/**
+ * Imagenes de las secciones que no son galeria (home, news...), que viven
+ * sueltas en `src/content/<seccion>/`. No son obras: no tienen ficha ni slug
+ * propio, solo se resuelven por ruta desde `plantilla.ts`.
+ */
+const SUELTAS = import.meta.glob<ImageMetadata>(
+  '/src/content/*/*.{jpg,jpeg,png,webp}',
+  { eager: true, import: 'default' },
+);
+
 export type Imagen = {
   /** Ruta relativa a la raiz de contenido, por ejemplo `2-x/05-aire/aire-00.jpg`. */
   ruta: string;
@@ -210,6 +220,13 @@ function construir(
       nombre,
       obras: ordenarPorPrefijo(obras),
     });
+  }
+
+  // Las sueltas se indexan por `<seccion>/<fichero>`, por ejemplo
+  // `home/cover2-angelalergo.jpg`.
+  for (const [clave, src] of Object.entries(SUELTAS)) {
+    const relativa = normalizarRuta(clave).replace('/src/content/', '');
+    porRutaImagen.set(relativa, src);
   }
 
   return { categorias: ordenarPorPrefijo(categorias), porSlugObra, porRutaImagen };
